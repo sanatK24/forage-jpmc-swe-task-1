@@ -1,3 +1,20 @@
+def getDataPoint(quote):
+    """ Produce all the needed values to generate a datapoint """
+    """ ------------- Update this function ------------- """
+    stock = quote['stock']
+    bid_price = float(quote['top_bid']['price'])
+    ask_price = float(quote['top_ask']['price'])
+    price = (bid_price+ask_price)/2
+    return stock, bid_price, ask_price, price
+
+def getRatio(price_a, price_b):
+    """ Get ratio of price_a and price_b """
+    """ ------------- Update this function ------------- """
+    if (price_b==0):
+        #when price_b is 0 ZeroDivisionError is avoided
+        return None
+    return price_a/price_b
+
 if __name__ == "__main__":
     # Query the price once every N seconds.
     for _ in iter(range(N)):
@@ -10,3 +27,78 @@ if __name__ == "__main__":
             print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
 
         print("Ratio %s" % getRatio(prices["ABC"], prices["DEF"]))
+
+    def test_getDataPoint_calculatePrice(self):
+        quotes = [
+            {'top_ask': {'price': 121.2, 'size': 36}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 120.48, 'size': 109}, 'id': '0.109974697771', 'stock': 'ABC'},
+            {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+        ]
+        for quote in quotes:
+            self.assertEqual(
+                getDataPoint(quote),
+                (
+                    quote['stock'],
+                    quote['top_bid']['price'],
+                    quote['top_ask']['price'],
+                    (quote['top_bid']['price'] + quote['top_ask']['price']) / 2
+                )
+            )
+
+    def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
+        quotes = [
+            {'top_ask': {'price': 119.2, 'size': 36}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 120.48, 'size': 109}, 'id': '0.109974697771', 'stock': 'ABC'},
+            {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+        ]
+        for quote in quotes:
+            self.assertEqual(
+                getDataPoint(quote),
+                (
+                    quote['stock'],
+                    quote['top_bid']['price'],
+                    quote['top_ask']['price'],
+                    (quote['top_bid']['price'] + quote['top_ask']['price']) / 2
+                )
+            )
+
+    def test_getDataPoint_bidEqualAsk(self):
+        quotes = [
+            {'top_ask': {'price': 100.0, 'size': 50}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 100.0, 'size': 50}, 'id': '0.109974697771', 'stock': 'XYZ'}
+        ]
+        for quote in quotes:
+            self.assertEqual(
+                getDataPoint(quote),
+                (
+                    quote['stock'],
+                    quote['top_bid']['price'],
+                    quote['top_ask']['price'],
+                    (quote['top_bid']['price'] + quote['top_ask']['price']) / 2
+                )
+            )
+
+    def test_getDataPoint_bidLessThanAsk(self):
+        quotes = [
+            {'top_ask': {'price': 110.0, 'size': 30}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 105.0, 'size': 60}, 'id': '0.109974697771', 'stock': 'LMN'}
+        ]
+        for quote in quotes:
+            self.assertEqual(
+                getDataPoint(quote),
+                (
+                    quote['stock'],
+                    quote['top_bid']['price'],
+                    quote['top_ask']['price'],
+                    (quote['top_bid']['price'] + quote['top_ask']['price']) / 2
+                )
+            )
+
+    def test_getRatio(self):
+        self.assertEqual(getRatio(10, 2), 5)
+        self.assertEqual(getRatio(10, 1), 10)
+        self.assertEqual(getRatio(0, 10), 0)
+        self.assertEqual(getRatio(10, 0), None)  # Division by zero case
+        self.assertEqual(getRatio(0, 0), None)  # Both are zero
+
+    def test_getRatio_withNegativeValues(self):
+        self.assertEqual(getRatio(-10, 2), -5)
+        self.assertEqual(getRatio(10, -2), -5)
+        self.assertEqual(getRatio(-10, -2), 5)
+        self.assertEqual(getRatio(-10, 0), None)  # Division by zero case
